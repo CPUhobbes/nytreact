@@ -2,7 +2,7 @@ import React from "react";
 
 // Import sub-components
 import Search from "./search";
-//import Results from "./results";
+import Results from "./results";
 
 // Helper Function
 import helpers from "./utils/helpers";
@@ -53,7 +53,7 @@ class Main extends React.Component {
 					<h1 className="headerText">NY Times Article Search</h1>
 				</div>
 				<Search setTerm={this.setTerm}/>
-				{/*<Results address={this.state.results} />*/}
+				<Results address={this.state.results} />
 			</div>
 		)
 	}
