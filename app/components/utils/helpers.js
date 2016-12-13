@@ -2,22 +2,32 @@
 import axios from "axios";
 
 // Geocoder API
-const geocodeAPI = "35e5548c618555b1a43eb4759d26b260";
+const authKey = "b9f91d369ff59547cd47b931d8cbc56b:0:74623931";
 
 // Helper Functions (in this case the only one is runQuery)
 const helpers = {
 
-  runQuery: (location) => {
+  runQuery: (article, begin, end) => {
+  	let addYear="";
+    console.log(article, begin, end);
 
-    console.log(location);
+
+    //TODO  ----  ERROR CHECKING ON DATES
+    if(begin!==""){
+    	addYear+="&begin_date="+begin+"0101";
+    }
+    if(end!==""){
+    	addYear+="&end_date="+end+"0101";
+    }
+
 
     // Figure out the geolocation
-    const queryURL = "http://api.opencagedata.com/geocode/v1/json?query=" + location + "&pretty=1&key=" + geocodeAPI;
+    const queryURL = "http://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=" + authKey + "&q="+article+"&sort=newest"+addYear;
 
     return axios.get(queryURL).then((response) => {
 
-      console.log(response);
-      return response.data.results[0].formatted;
+      //console.log(response.data.response.docs);
+      return response.data.response.docs;
     });
 
   }

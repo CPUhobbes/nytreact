@@ -1,11 +1,13 @@
 import React from "react";
 
 // Import sub-components
-import Search from "./search";
-import Results from "./results";
+import Search from "./children/search";
+import Results from "./children/results";
 
 // Helper Function
 import helpers from "./utils/helpers";
+
+import Perf from 'react-addons-perf';
 
 // Create the Parent Component
 class Main extends React.Component {
@@ -16,30 +18,61 @@ class Main extends React.Component {
 
     this.state = {
       searchTerm: "",
-      results: ""
+      startYear:"",
+      endYear:"",
+      numArticles:"5",
+      results: [{title:"", abstract:"", url:""}] 
     };
 
-    this.setTerm = this.setTerm.bind(this);
+    this.setAllTerm = this.setAllTerm.bind(this);
+   // this.setArticles = this.setArticles.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState) {
 
-    if (prevState.searchTerm !== this.state.searchTerm) {
+    if ((prevState.searchTerm !== this.state.searchTerm) || 
+      (prevState.numArticles !== this.state.numArticles) ||
+      (prevState.startYear !== this.state.startYear) ||
+      (prevState.endYear !== this.state.endYear)) {
+      
       console.log("UPDATED");
-
-      helpers.runQuery(this.state.searchTerm).then((data) => {
+      console.log("=", this.state.searchTerm, this.state.startYear, this.state.endYear, this.state.numArticles,"=");
+      helpers.runQuery(this.state.searchTerm, this.state.startYear, this.state.endYear).then((data) => {
         if (data !== this.state.results) {
-          console.log(data);
+          var arr = [];
+          console.log("NumArt="+this.state.numArticles)
+          var numArt = this.state.numArticles;
+          data.forEach(function(val, index){
+            if(index<numArt){
+              arr.push({title:val.headline.print_headline, abstract: val.snippet, url:val.web_url});
+            }
 
-          this.setState({ results: data });
+          })
+          this.setState({ results: arr });
+          console.log(this.state.results);
         }
       });
     }
   }
 
-  setTerm(searchTerm) {
+  // setTerm(searchTerm) {
+  //   this.setState({
+  //     searchTerm: searchTerm
+  //   });
+  // }
+
+  // setArticles(numArticles) {
+  //   this.setState({
+  //     numArticles: numArticles
+  //   });
+  // }
+
+  setAllTerm(data) {
     this.setState({
-      searchTerm: searchTerm
+      searchTerm: data.searchTerm,
+      numArticles: data.numArticles,
+      endYear:data.endYear,
+      startYear: data.startYear
     });
   }
 
@@ -52,8 +85,8 @@ class Main extends React.Component {
 				<div className="jumbotron header_bg">
 					<h1 className="headerText">NY Times Article Search</h1>
 				</div>
-				<Search setTerm={this.setTerm}/>
-				<Results address={this.state.results} />
+				<Search setTerm={this.setTerm} setArticles={this.setArticles} setAllTerm={this.setAllTerm}/>
+				<Results results={this.state.results} />
 			</div>
 		)
 	}

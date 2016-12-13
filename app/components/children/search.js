@@ -8,6 +8,9 @@ class Form extends React.Component {
 
     this.state = {
     	searchTerm: "",
+    	startYear:"",
+    	endYear:"",
+    	numArticles:"5"
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -23,9 +26,14 @@ class Form extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     console.log("CLICK");
-    console.log(this.state.searchTerm);
-    this.props.setTerm(this.state.searchTerm);
-    this.setState({searchTerm: "",});
+    console.log(this.state.searchTerm, this.state.numArticles);
+    this.props.setAllTerm(this.state);
+   // this.props.setArticles(this.state.numArticles);
+    //this.props.setTerm(this.state.startYear);
+    //this.props.setTerm(this.state.endYear);
+    this.setState({searchTerm: ""});
+    this.setState({startYear: ""});
+    this.setState({endYear: ""});
   }
 
 	// Create the render function for what gets displayed on page.
@@ -43,23 +51,25 @@ class Form extends React.Component {
 
 						<div className="form-group">
 							<label htmlFor="pwd">Number of Records to Retrieve:</label>
-							{/*<select className="form-control" id="numArticles">
-								<option value='1'>1</option>*/}	
-
-								{ /* Setting the option for 5 as default */ }
-								{ /*<option value='5' selected>5</option>
+							<select className="form-control" id="numArticles" value={this.state.numArticles} onChange={this.handleChange} value={this.state.numArticles}>
+								<option value='1'>1</option>
+								<option value='5'>5</option>
 								<option value='10'>10</option>
-							</select>	*/ }	  
+							</select>	  
 						</div>
 
 						<div className="form-group">
 							<label htmlFor="startYear">Start Year (Optional):</label>
-							<input type="text" className="form-control" id="startYear" />
+							<input type="text" className="form-control" id="startYear"
+							value={this.state.startYear} onChange={this.handleChange}/>
+							
 						</div>
 
 						<div className="form-group">
 							<label htmlFor="endYear">End Year (Optional):</label>
-							<input type="text" className="form-control" id="endYear" />
+							<input type="text" className="form-control" id="endYear"
+							value={this.state.endYear} onChange={this.handleChange}/>
+							
 						</div>
 
 						<button type="submit" className="btn btn-default" id="runSearch">Search</button>
