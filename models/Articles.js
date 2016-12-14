@@ -16,6 +16,9 @@ const articleSchema = mongoose.Schema({
     url: {
         type: String,
         required: true
+    },
+    abstract: {
+        type: String
     }
 });
 

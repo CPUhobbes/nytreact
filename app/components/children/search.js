@@ -2,7 +2,7 @@
 
 import React from "react";
 
-class Form extends React.Component {
+class Search extends React.Component {
   constructor(props) {
     super(props);
 
@@ -26,11 +26,8 @@ class Form extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     console.log("CLICK");
-    console.log(this.state.searchTerm, this.state.numArticles);
+    //console.log(this.state.searchTerm, this.state.numArticles);
     this.props.setAllTerm(this.state);
-   // this.props.setArticles(this.state.numArticles);
-    //this.props.setTerm(this.state.startYear);
-    //this.props.setTerm(this.state.endYear);
     this.setState({searchTerm: ""});
     this.setState({startYear: ""});
     this.setState({endYear: ""});
@@ -51,7 +48,7 @@ class Form extends React.Component {
 
 						<div className="form-group">
 							<label htmlFor="pwd">Number of Records to Retrieve:</label>
-							<select className="form-control" id="numArticles" value={this.state.numArticles} onChange={this.handleChange} value={this.state.numArticles}>
+							<select className="form-control" id="numArticles" value={this.state.numArticles} onChange={this.handleChange}>
 								<option value='1'>1</option>
 								<option value='5'>5</option>
 								<option value='10'>10</option>
@@ -82,4 +79,4 @@ class Form extends React.Component {
 	}
 }
 // Export the component back for use in other files
-export default Form;
+export default Search;

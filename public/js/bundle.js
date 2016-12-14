@@ -21813,13 +21813,17 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _search = __webpack_require__(271);
+	var _search = __webpack_require__(185);
 
 	var _search2 = _interopRequireDefault(_search);
 
-	var _results = __webpack_require__(272);
+	var _results = __webpack_require__(186);
 
 	var _results2 = _interopRequireDefault(_results);
+
+	var _saved = __webpack_require__(271);
+
+	var _saved2 = _interopRequireDefault(_saved);
 
 	var _helpers = __webpack_require__(187);
 
@@ -21857,11 +21861,20 @@
 	      startYear: "",
 	      endYear: "",
 	      numArticles: "5",
-	      results: [{ title: "", abstract: "", url: "" }]
+	      results: [{ title: "", abstract: "", url: "" }],
+
+	      title: "",
+	      abstract: "",
+	      url: "",
+
+	      savedArticles: [{ id: "", title: "", abstract: "", url: "" }],
+	      deleteID: ""
 	    };
 
+	    _this.save = {};
+
 	    _this.setAllTerm = _this.setAllTerm.bind(_this);
-	    // this.setArticles = this.setArticles.bind(this);
+	    _this.setSaveData = _this.setSaveData.bind(_this);
 	    return _this;
 	  }
 
@@ -21870,39 +21883,48 @@
 	    value: function componentDidUpdate(prevProps, prevState) {
 	      var _this2 = this;
 
+	      //Check for updated search form
 	      if (prevState.searchTerm !== this.state.searchTerm || prevState.numArticles !== this.state.numArticles || prevState.startYear !== this.state.startYear || prevState.endYear !== this.state.endYear) {
-
 	        console.log("UPDATED");
-	        console.log("=", this.state.searchTerm, this.state.startYear, this.state.endYear, this.state.numArticles, "=");
+	        //console.log("=", this.state.searchTerm, this.state.startYear, this.state.endYear, this.state.numArticles,"=");
 	        _helpers2.default.runQuery(this.state.searchTerm, this.state.startYear, this.state.endYear).then(function (data) {
 	          if (data !== _this2.state.results) {
 	            var arr = [];
-	            console.log("NumArt=" + _this2.state.numArticles);
+	            //console.log(data);
 	            var numArt = _this2.state.numArticles;
 	            data.forEach(function (val, index) {
 	              if (index < numArt) {
-	                arr.push({ title: val.headline.print_headline, abstract: val.snippet, url: val.web_url });
+
+	                //print_headline or main object maybe null/undefined, check to see which one is valid
+	                var newTitle;
+	                if (typeof val.headline.print_headline === "undefined") {
+	                  newTitle = val.headline.main;
+	                } else {
+	                  newTitle = val.headline.print_headline;
+	                }
+	                arr.push({ title: newTitle, abstract: val.snippet, url: val.web_url });
 	              }
 	            });
 	            _this2.setState({ results: arr });
-	            console.log(_this2.state.results);
+	            //console.log(this.state.results);
 	          }
 	        });
 	      }
+
+	      //Check if article needs to be added to Database
+	      else if (prevState.title !== this.state.title) {
+	          _helpers2.default.saveArticle(this.state).then(function (data) {});
+	        }
 	    }
-
-	    // setTerm(searchTerm) {
-	    //   this.setState({
-	    //     searchTerm: searchTerm
-	    //   });
-	    // }
-
-	    // setArticles(numArticles) {
-	    //   this.setState({
-	    //     numArticles: numArticles
-	    //   });
-	    // }
-
+	  }, {
+	    key: "setSaveData",
+	    value: function setSaveData(data) {
+	      this.setState({
+	        title: data.title,
+	        abstract: data.abstract,
+	        url: data.url
+	      });
+	    }
 	  }, {
 	    key: "setAllTerm",
 	    value: function setAllTerm(data) {
@@ -21912,6 +21934,19 @@
 	        endYear: data.endYear,
 	        startYear: data.startYear
 	      });
+	    }
+	  }, {
+	    key: "setDelete",
+	    value: function setDelete(data) {
+	      this.setState({
+	        deleteID: data.id
+	      });
+	    }
+	  }, {
+	    key: "componentDidMount",
+	    value: function componentDidMount() {
+	      console.log("mounted");
+	      _helpers2.default.getArticles().then(function (data) {});
 	    }
 
 	    // Here we crate the render function for what will be displayed on page.
@@ -21932,8 +21967,9 @@
 	            "NY Times Article Search"
 	          )
 	        ),
-	        _react2.default.createElement(_search2.default, { setTerm: this.setTerm, setArticles: this.setArticles, setAllTerm: this.setAllTerm }),
-	        _react2.default.createElement(_results2.default, { results: this.state.results })
+	        _react2.default.createElement(_search2.default, { setAllTerm: this.setAllTerm }),
+	        _react2.default.createElement(_results2.default, { results: this.state.results, setSaveData: this.setSaveData }),
+	        _react2.default.createElement(_saved2.default, { results: this.state.savedArticles, deleteArticle: this.setDelete })
 	      );
 	    }
 	  }]);
@@ -21947,8 +21983,314 @@
 	exports.default = Main;
 
 /***/ },
-/* 185 */,
-/* 186 */,
+/* 185 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Search = function (_React$Component) {
+		_inherits(Search, _React$Component);
+
+		function Search(props) {
+			_classCallCheck(this, Search);
+
+			var _this = _possibleConstructorReturn(this, (Search.__proto__ || Object.getPrototypeOf(Search)).call(this, props));
+
+			_this.state = {
+				searchTerm: "",
+				startYear: "",
+				endYear: "",
+				numArticles: "5"
+			};
+
+			_this.handleChange = _this.handleChange.bind(_this);
+			_this.handleSubmit = _this.handleSubmit.bind(_this);
+			return _this;
+		}
+
+		_createClass(Search, [{
+			key: "handleChange",
+			value: function handleChange(event) {
+				var newState = {};
+				newState[event.target.id] = event.target.value;
+				this.setState(newState);
+			}
+		}, {
+			key: "handleSubmit",
+			value: function handleSubmit(event) {
+				event.preventDefault();
+				console.log("CLICK");
+				//console.log(this.state.searchTerm, this.state.numArticles);
+				this.props.setAllTerm(this.state);
+				this.setState({ searchTerm: "" });
+				this.setState({ startYear: "" });
+				this.setState({ endYear: "" });
+			}
+
+			// Create the render function for what gets displayed on page.
+
+		}, {
+			key: "render",
+			value: function render() {
+
+				return _react2.default.createElement(
+					"div",
+					{ className: "row" },
+					_react2.default.createElement(
+						"div",
+						{ className: "col-md-12" },
+						_react2.default.createElement(
+							"form",
+							{ onSubmit: this.handleSubmit },
+							_react2.default.createElement(
+								"div",
+								{ className: "form-group" },
+								_react2.default.createElement(
+									"label",
+									{ htmlFor: "search" },
+									"Search Term:"
+								),
+								_react2.default.createElement("input", { type: "text", className: "form-control", id: "searchTerm",
+									value: this.state.searchTerm, onChange: this.handleChange })
+							),
+							_react2.default.createElement(
+								"div",
+								{ className: "form-group" },
+								_react2.default.createElement(
+									"label",
+									{ htmlFor: "pwd" },
+									"Number of Records to Retrieve:"
+								),
+								_react2.default.createElement(
+									"select",
+									{ className: "form-control", id: "numArticles", value: this.state.numArticles, onChange: this.handleChange },
+									_react2.default.createElement(
+										"option",
+										{ value: "1" },
+										"1"
+									),
+									_react2.default.createElement(
+										"option",
+										{ value: "5" },
+										"5"
+									),
+									_react2.default.createElement(
+										"option",
+										{ value: "10" },
+										"10"
+									)
+								)
+							),
+							_react2.default.createElement(
+								"div",
+								{ className: "form-group" },
+								_react2.default.createElement(
+									"label",
+									{ htmlFor: "startYear" },
+									"Start Year (Optional):"
+								),
+								_react2.default.createElement("input", { type: "text", className: "form-control", id: "startYear",
+									value: this.state.startYear, onChange: this.handleChange })
+							),
+							_react2.default.createElement(
+								"div",
+								{ className: "form-group" },
+								_react2.default.createElement(
+									"label",
+									{ htmlFor: "endYear" },
+									"End Year (Optional):"
+								),
+								_react2.default.createElement("input", { type: "text", className: "form-control", id: "endYear",
+									value: this.state.endYear, onChange: this.handleChange })
+							),
+							_react2.default.createElement(
+								"button",
+								{ type: "submit", className: "btn btn-default", id: "runSearch" },
+								"Search"
+							),
+							_react2.default.createElement(
+								"button",
+								{ type: "button", className: "btn btn-default", id: "clearAll" },
+								"Clear Results"
+							)
+						)
+					)
+				);
+			}
+		}]);
+
+		return Search;
+	}(_react2.default.Component);
+	// Export the component back for use in other files
+
+
+	exports.default = Search;
+
+/***/ },
+/* 186 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Results = function (_React$Component) {
+	  _inherits(Results, _React$Component);
+
+	  function Results(props) {
+	    _classCallCheck(this, Results);
+
+	    var _this = _possibleConstructorReturn(this, (Results.__proto__ || Object.getPrototypeOf(Results)).call(this, props));
+
+	    _this.state = {
+	      title: "",
+	      abstract: "",
+	      url: ""
+	    };
+	    _this.handleSubmit = _this.handleSubmit.bind(_this);
+	    return _this;
+	  }
+
+	  _createClass(Results, [{
+	    key: "handleSubmit",
+	    value: function handleSubmit(event) {
+	      event.preventDefault();
+	      console.log("CLICK");
+	      //console.log(event.target.title.value, event.target.this.url.value)
+	      this.state.title = event.target.title.value;
+	      this.state.abstract = event.target.abstract.value;
+	      this.state.url = event.target.url.value;
+
+	      //console.log(this.state);
+	      this.props.setSaveData(this.state);
+	      this.setState({ title: "" });
+	      this.setState({ abstract: "" });
+	      this.setState({ url: "" });
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+
+	      return _react2.default.createElement(
+	        "div",
+	        { className: "panel panel-default" },
+	        _react2.default.createElement(
+	          "div",
+	          { className: "panel-heading" },
+	          _react2.default.createElement(
+	            "h3",
+	            { className: "panel-title text-center" },
+	            "Results"
+	          )
+	        ),
+	        _react2.default.createElement(
+	          "div",
+	          { className: "panel-body text-center" },
+	          _react2.default.createElement(
+	            "h1",
+	            null,
+	            "Top Articles"
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            null,
+	            this.props.results.length > 0 && this.props.results[0].title != "" && this.props.results.map(function (data, i) {
+	              var _this2 = this;
+
+	              return _react2.default.createElement(
+	                "div",
+	                { key: i, className: "articleContainer" },
+	                _react2.default.createElement(
+	                  "form",
+	                  { onSubmit: this.handleSubmit },
+	                  _react2.default.createElement("input", { type: "hidden", id: "title",
+	                    defaultValue: data.title, ref: function ref(title) {
+	                      return _this2.title = title;
+	                    } }),
+	                  _react2.default.createElement("input", { type: "hidden", id: "abstract",
+	                    defaultValue: data.abstract, ref: function ref(abstract) {
+	                      return _this2.abstract = abstract;
+	                    } }),
+	                  _react2.default.createElement("input", { type: "hidden", id: "url",
+	                    defaultValue: data.url, ref: function ref(url) {
+	                      return _this2.url = url;
+	                    } }),
+	                  _react2.default.createElement(
+	                    "h2",
+	                    null,
+	                    data.title
+	                  ),
+	                  _react2.default.createElement(
+	                    "p",
+	                    null,
+	                    data.abstract
+	                  ),
+	                  _react2.default.createElement(
+	                    "p",
+	                    null,
+	                    data.url
+	                  ),
+	                  _react2.default.createElement(
+	                    "p",
+	                    null,
+	                    _react2.default.createElement(
+	                      "button",
+	                      { type: "submit", className: "btn btn-default", id: "runSearch" },
+	                      "Save Article"
+	                    )
+	                  )
+	                )
+	              );
+	            }, this)
+	          )
+	        )
+	      );
+	    }
+	  }]);
+
+	  return Results;
+	}(_react2.default.Component);
+
+	// Export the component back for use in other files
+
+
+	exports.default = Results;
+
+/***/ },
 /* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -21983,7 +22325,7 @@
 	      addYear += "&end_date=" + end + "0101";
 	    }
 
-	    // Figure out the geolocation
+	    // Query NYTimes API
 	    var queryURL = "http://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=" + authKey + "&q=" + article + "&sort=newest" + addYear;
 
 	    return _axios2.default.get(queryURL).then(function (response) {
@@ -21991,7 +22333,32 @@
 	      //console.log(response.data.response.docs);
 	      return response.data.response.docs;
 	    });
+	  },
+
+	  saveArticle: function saveArticle(article) {
+	    //console.log("title - ", article.title);
+	    //console.log("abstract - ", article.abstract);
+	    //console.log("url - ", article.url);
+	    var queryURL = "/api/saved?title=" + article.title + "&abstract=" + article.abstract + "&url=" + article.url;
+
+	    return _axios2.default.post(queryURL).then(function (response) {
+	      return console.log(response);
+	    });
+	  },
+
+	  getArticles: function getArticles() {
+	    //console.log("title - ", article.title);
+	    //console.log("abstract - ", article.abstract);
+	    //console.log("url - ", article.url);
+	    var queryURL = "/api/saved";
+
+	    return _axios2.default.get(queryURL).then(function (response) {
+	      console.log(response.data);
+
+	      return response;
+	    });
 	  }
+
 	};
 
 	// We export the helpers function (which contains getGithubInfo)
@@ -28999,173 +29366,6 @@
 	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _react = __webpack_require__(1);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var Form = function (_React$Component) {
-		_inherits(Form, _React$Component);
-
-		function Form(props) {
-			_classCallCheck(this, Form);
-
-			var _this = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
-
-			_this.state = {
-				searchTerm: "",
-				startYear: "",
-				endYear: "",
-				numArticles: "5"
-			};
-
-			_this.handleChange = _this.handleChange.bind(_this);
-			_this.handleSubmit = _this.handleSubmit.bind(_this);
-			return _this;
-		}
-
-		_createClass(Form, [{
-			key: "handleChange",
-			value: function handleChange(event) {
-				var newState = {};
-				newState[event.target.id] = event.target.value;
-				this.setState(newState);
-			}
-		}, {
-			key: "handleSubmit",
-			value: function handleSubmit(event) {
-				event.preventDefault();
-				console.log("CLICK");
-				console.log(this.state.searchTerm, this.state.numArticles);
-				this.props.setAllTerm(this.state);
-				// this.props.setArticles(this.state.numArticles);
-				//this.props.setTerm(this.state.startYear);
-				//this.props.setTerm(this.state.endYear);
-				this.setState({ searchTerm: "" });
-				this.setState({ startYear: "" });
-				this.setState({ endYear: "" });
-			}
-
-			// Create the render function for what gets displayed on page.
-
-		}, {
-			key: "render",
-			value: function render() {
-
-				return _react2.default.createElement(
-					"div",
-					{ className: "row" },
-					_react2.default.createElement(
-						"div",
-						{ className: "col-md-12" },
-						_react2.default.createElement(
-							"form",
-							{ onSubmit: this.handleSubmit },
-							_react2.default.createElement(
-								"div",
-								{ className: "form-group" },
-								_react2.default.createElement(
-									"label",
-									{ htmlFor: "search" },
-									"Search Term:"
-								),
-								_react2.default.createElement("input", { type: "text", className: "form-control", id: "searchTerm",
-									value: this.state.searchTerm, onChange: this.handleChange })
-							),
-							_react2.default.createElement(
-								"div",
-								{ className: "form-group" },
-								_react2.default.createElement(
-									"label",
-									{ htmlFor: "pwd" },
-									"Number of Records to Retrieve:"
-								),
-								_react2.default.createElement(
-									"select",
-									_defineProperty({ className: "form-control", id: "numArticles", value: this.state.numArticles, onChange: this.handleChange }, "value", this.state.numArticles),
-									_react2.default.createElement(
-										"option",
-										{ value: "1" },
-										"1"
-									),
-									_react2.default.createElement(
-										"option",
-										{ value: "5" },
-										"5"
-									),
-									_react2.default.createElement(
-										"option",
-										{ value: "10" },
-										"10"
-									)
-								)
-							),
-							_react2.default.createElement(
-								"div",
-								{ className: "form-group" },
-								_react2.default.createElement(
-									"label",
-									{ htmlFor: "startYear" },
-									"Start Year (Optional):"
-								),
-								_react2.default.createElement("input", { type: "text", className: "form-control", id: "startYear",
-									value: this.state.startYear, onChange: this.handleChange })
-							),
-							_react2.default.createElement(
-								"div",
-								{ className: "form-group" },
-								_react2.default.createElement(
-									"label",
-									{ htmlFor: "endYear" },
-									"End Year (Optional):"
-								),
-								_react2.default.createElement("input", { type: "text", className: "form-control", id: "endYear",
-									value: this.state.endYear, onChange: this.handleChange })
-							),
-							_react2.default.createElement(
-								"button",
-								{ type: "submit", className: "btn btn-default", id: "runSearch" },
-								"Search"
-							),
-							_react2.default.createElement(
-								"button",
-								{ type: "button", className: "btn btn-default", id: "clearAll" },
-								"Clear Results"
-							)
-						)
-					)
-				);
-			}
-		}]);
-
-		return Form;
-	}(_react2.default.Component);
-	// Export the component back for use in other files
-
-
-	exports.default = Form;
-
-/***/ },
-/* 272 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 
@@ -29183,16 +29383,32 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Results = function (_React$Component) {
-	  _inherits(Results, _React$Component);
+	var Saved = function (_React$Component) {
+	  _inherits(Saved, _React$Component);
 
-	  function Results(props) {
-	    _classCallCheck(this, Results);
+	  function Saved(props) {
+	    _classCallCheck(this, Saved);
 
-	    return _possibleConstructorReturn(this, (Results.__proto__ || Object.getPrototypeOf(Results)).call(this, props));
+	    var _this = _possibleConstructorReturn(this, (Saved.__proto__ || Object.getPrototypeOf(Saved)).call(this, props));
+
+	    _this.state = {
+	      id: ""
+	    };
+	    return _this;
 	  }
 
-	  _createClass(Results, [{
+	  _createClass(Saved, [{
+	    key: "handleSubmit",
+	    value: function handleSubmit(event) {
+	      event.preventDefault();
+	      console.log("CLICK");
+	      //console.log(event.target.title.value, event.target.this.url.value)
+	      this.state.title = event.target.id.value;
+	      //console.log(this.state);
+	      this.props.setSaveData(this.state);
+	      this.setState({ id: "" });
+	    }
+	  }, {
 	    key: "render",
 	    value: function render() {
 
@@ -29214,54 +29430,64 @@
 	          _react2.default.createElement(
 	            "h1",
 	            null,
-	            "Top Articles"
+	            "Saved Articles!!"
 	          ),
 	          _react2.default.createElement(
 	            "div",
 	            null,
 	            this.props.results.length > 0 && this.props.results[0].title != "" && this.props.results.map(function (data, i) {
+	              var _this2 = this;
+
 	              return _react2.default.createElement(
 	                "div",
 	                { key: i, className: "articleContainer" },
 	                _react2.default.createElement(
-	                  "h2",
-	                  null,
-	                  data.title
-	                ),
-	                _react2.default.createElement(
-	                  "p",
-	                  null,
-	                  data.abstract
-	                ),
-	                _react2.default.createElement(
-	                  "p",
-	                  null,
-	                  data.url
-	                ),
-	                _react2.default.createElement(
-	                  "p",
-	                  null,
+	                  "form",
+	                  { onSubmit: this.handleSubmit },
+	                  _react2.default.createElement("input", { type: "hidden", id: "title",
+	                    defaultValue: data.id, ref: function ref(id) {
+	                      return _this2.id = id;
+	                    } }),
 	                  _react2.default.createElement(
-	                    "button",
-	                    { type: "submit", className: "btn btn-default", id: "runSearch" },
-	                    "Save Article"
+	                    "h2",
+	                    null,
+	                    data.title
+	                  ),
+	                  _react2.default.createElement(
+	                    "p",
+	                    null,
+	                    data.abstract
+	                  ),
+	                  _react2.default.createElement(
+	                    "p",
+	                    null,
+	                    data.url
+	                  ),
+	                  _react2.default.createElement(
+	                    "p",
+	                    null,
+	                    _react2.default.createElement(
+	                      "button",
+	                      { type: "submit", className: "btn btn-default", id: "runSearch" },
+	                      "Save Article"
+	                    )
 	                  )
 	                )
 	              );
-	            })
+	            }, this)
 	          )
 	        )
 	      );
 	    }
 	  }]);
 
-	  return Results;
+	  return Saved;
 	}(_react2.default.Component);
 
 	// Export the component back for use in other files
 
 
-	exports.default = Results;
+	exports.default = Saved;
 
 /***/ }
 /******/ ]);

@@ -1,34 +1,25 @@
 import React from "react";
 
-class Results extends React.Component {
+class Saved extends React.Component {
+  	constructor(props) {
+    	super(props);
 
-  constructor(props) {
-    super(props);
+	    this.state = {
+	    	id: ""
+	    };
+	}
 
-    this.state = {
-      title: "",
-      abstract: "",
-      url: ""
-    }
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  handleSubmit(event) {
+	handleSubmit(event) {
     event.preventDefault();
     console.log("CLICK");
     //console.log(event.target.title.value, event.target.this.url.value)
-    this.state.title = event.target.title.value;
-    this.state.abstract = event.target.abstract.value;
-    this.state.url= event.target.url.value;
-
+    this.state.title = event.target.id.value;
     //console.log(this.state);
     this.props.setSaveData(this.state);
-    this.setState({title: ""});
-    this.setState({abstract: ""});
-    this.setState({url: ""});
+    this.setState({id: ""});
   }
 
-  render() {
+	render() {
 
     return (
       <div className="panel panel-default">
@@ -37,18 +28,14 @@ class Results extends React.Component {
         </div>
         <div className="panel-body text-center">
 
-          <h1>Top Articles</h1>
+          <h1>Saved Articles!!</h1>
           <div>
             {this.props.results.length > 0 && this.props.results[0].title!="" &&
                 this.props.results.map(function(data, i) {
                   return <div key={i} className='articleContainer'>
                             <form onSubmit={this.handleSubmit}>
                             <input type="hidden" id="title"
-                            defaultValue={data.title} ref={(title) => this.title = title} />
-                            <input type="hidden" id="abstract"
-                            defaultValue={data.abstract} ref={(abstract) => this.abstract = abstract} />
-                            <input type="hidden" id="url"
-                            defaultValue={data.url} ref={(url) => this.url = url} />
+                            defaultValue={data.id} ref={(id) => this.id = id} />
                             <h2>{data.title}</h2>
                             <p>{data.abstract}</p>
                             <p>{data.url}</p>
@@ -65,4 +52,4 @@ class Results extends React.Component {
 }
 
 // Export the component back for use in other files
-export default Results;
+export default Saved;

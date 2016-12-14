@@ -21,7 +21,7 @@ const helpers = {
     }
 
 
-    // Figure out the geolocation
+    // Query NYTimes API
     const queryURL = "http://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=" + authKey + "&q="+article+"&sort=newest"+addYear;
 
     return axios.get(queryURL).then((response) => {
@@ -30,7 +30,33 @@ const helpers = {
       return response.data.response.docs;
     });
 
+  },
+
+  saveArticle: (article)=> {
+  	//console.log("title - ", article.title);
+    //console.log("abstract - ", article.abstract);
+    //console.log("url - ", article.url);
+    const queryURL = "/api/saved?title="+article.title+"&abstract="+article.abstract+"&url="+article.url;
+
+    return axios.post(queryURL).then((response) => {
+    	return console.log(response);
+    });
+  },
+
+  getArticles: ()=> {
+    //console.log("title - ", article.title);
+    //console.log("abstract - ", article.abstract);
+    //console.log("url - ", article.url);
+    const queryURL = "/api/saved";
+
+    return axios.get(queryURL).then((response) => {
+      console.log(response.data);
+
+      return response;
+    });
   }
+
+
 };
 
 // We export the helpers function (which contains getGithubInfo)
