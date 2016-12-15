@@ -39,20 +39,27 @@ const helpers = {
     const queryURL = "/api/saved?title="+article.title+"&abstract="+article.abstract+"&url="+article.url;
 
     return axios.post(queryURL).then((response) => {
-    	return console.log(response);
+    	return response.data;
     });
   },
 
   getArticles: ()=> {
-    //console.log("title - ", article.title);
-    //console.log("abstract - ", article.abstract);
-    //console.log("url - ", article.url);
     const queryURL = "/api/saved";
 
     return axios.get(queryURL).then((response) => {
       console.log(response.data);
 
-      return response;
+      return response.data;
+    });
+  },
+
+  deleteArticle: (article)=> {
+    const queryURL = "/api/saved?_id="+article;
+
+    return axios.delete(queryURL).then((response) => {
+      console.log(response.data);
+
+      return response.data;
     });
   }
 

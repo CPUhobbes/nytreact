@@ -35,7 +35,9 @@ let controllers = {
           //     res.json(result.comments);
           //   }
           // );
-          res.send("cool");
+          Articles.find({}).exec(function (err, doc){ 
+             res.json(doc);
+          });
         }
       );
 
@@ -45,8 +47,10 @@ let controllers = {
     },
 
     deleteArticles: (req, res) => {
-        Articles.find({}).exec(function (err, doc){ 
-            res.send(doc);
+        Articles.findByIdAndRemove(req.query._id).exec(function (err, doc){ 
+          Articles.find({}).exec(function (err, doc){ 
+             res.json(doc);
+          });
         });
     }
 }

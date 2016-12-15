@@ -28,7 +28,7 @@ class Main extends React.Component {
       abstract:"",
       url:"",
 
-      savedArticles:[{id:"", title:"", abstract:"", url:""}],
+      savedArticles:[{_id:"test", title:"test", abstract:"test", url:"test"}],
       deleteID:""
     };
 
@@ -38,6 +38,9 @@ class Main extends React.Component {
 
     this.setAllTerm = this.setAllTerm.bind(this);
     this.setSaveData = this.setSaveData.bind(this);
+    this.setDelete = this.setDelete.bind(this);
+
+    //this.state.savedArticles = [{title:"testing", abstract:"test", url:"www"}];
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -78,8 +81,22 @@ class Main extends React.Component {
     //Check if article needs to be added to Database
     else if(prevState.title !== this.state.title){
       helpers.saveArticle(this.state).then((data) => {
+        console.log(data, "added")
+        this.setState({
+        savedArticles:data
+      });
       });
 
+    }
+
+    if(prevState.deleteID !== this.state.deleteID){
+    helpers.deleteArticle(this.state.deleteID).then((data) => {
+        console.log(data, "hit");
+        this.setState({
+        savedArticles:data
+      });
+      //console.log(this.state.savedArticles);
+      });
     }
   }
 
@@ -101,16 +118,20 @@ class Main extends React.Component {
   }
 
   setDelete(data){
+    console.log(data, "asdasda");
     this.setState({
-      deleteID:data.id
+      deleteID:data
     });
   }
 
-  componentDidMount(){
-    console.log("mounted");
+  componentWillMount(){
+    console.log("Willmounted");
     helpers.getArticles().then((data) => {
+       this.setState({
+        savedArticles:data
       });
 
+    });
     }
 
 	// Here we crate the render function for what will be displayed on page.
@@ -124,7 +145,7 @@ class Main extends React.Component {
 				</div>
 				<Search setAllTerm={this.setAllTerm}/>
 				<Results results={this.state.results} setSaveData={this.setSaveData}/>
-        <Saved results ={this.state.savedArticles} deleteArticle={this.setDelete} />
+        <Saved results ={this.state.savedArticles} setDelete={this.setDelete} />
 			</div>
 		)
 	}

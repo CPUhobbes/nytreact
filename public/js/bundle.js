@@ -21867,7 +21867,7 @@
 	      abstract: "",
 	      url: "",
 
-	      savedArticles: [{ id: "", title: "", abstract: "", url: "" }],
+	      savedArticles: [{ _id: "test", title: "test", abstract: "test", url: "test" }],
 	      deleteID: ""
 	    };
 
@@ -21875,6 +21875,9 @@
 
 	    _this.setAllTerm = _this.setAllTerm.bind(_this);
 	    _this.setSaveData = _this.setSaveData.bind(_this);
+	    _this.setDelete = _this.setDelete.bind(_this);
+
+	    //this.state.savedArticles = [{title:"testing", abstract:"test", url:"www"}];
 	    return _this;
 	  }
 
@@ -21913,8 +21916,23 @@
 
 	      //Check if article needs to be added to Database
 	      else if (prevState.title !== this.state.title) {
-	          _helpers2.default.saveArticle(this.state).then(function (data) {});
+	          _helpers2.default.saveArticle(this.state).then(function (data) {
+	            console.log(data, "added");
+	            _this2.setState({
+	              savedArticles: data
+	            });
+	          });
 	        }
+
+	      if (prevState.deleteID !== this.state.deleteID) {
+	        _helpers2.default.deleteArticle(this.state.deleteID).then(function (data) {
+	          console.log(data, "hit");
+	          _this2.setState({
+	            savedArticles: data
+	          });
+	          //console.log(this.state.savedArticles);
+	        });
+	      }
 	    }
 	  }, {
 	    key: "setSaveData",
@@ -21938,15 +21956,22 @@
 	  }, {
 	    key: "setDelete",
 	    value: function setDelete(data) {
+	      console.log(data, "asdasda");
 	      this.setState({
-	        deleteID: data.id
+	        deleteID: data
 	      });
 	    }
 	  }, {
-	    key: "componentDidMount",
-	    value: function componentDidMount() {
-	      console.log("mounted");
-	      _helpers2.default.getArticles().then(function (data) {});
+	    key: "componentWillMount",
+	    value: function componentWillMount() {
+	      var _this3 = this;
+
+	      console.log("Willmounted");
+	      _helpers2.default.getArticles().then(function (data) {
+	        _this3.setState({
+	          savedArticles: data
+	        });
+	      });
 	    }
 
 	    // Here we crate the render function for what will be displayed on page.
@@ -21969,7 +21994,7 @@
 	        ),
 	        _react2.default.createElement(_search2.default, { setAllTerm: this.setAllTerm }),
 	        _react2.default.createElement(_results2.default, { results: this.state.results, setSaveData: this.setSaveData }),
-	        _react2.default.createElement(_saved2.default, { results: this.state.savedArticles, deleteArticle: this.setDelete })
+	        _react2.default.createElement(_saved2.default, { results: this.state.savedArticles, setDelete: this.setDelete })
 	      );
 	    }
 	  }]);
@@ -22342,20 +22367,27 @@
 	    var queryURL = "/api/saved?title=" + article.title + "&abstract=" + article.abstract + "&url=" + article.url;
 
 	    return _axios2.default.post(queryURL).then(function (response) {
-	      return console.log(response);
+	      return response.data;
 	    });
 	  },
 
 	  getArticles: function getArticles() {
-	    //console.log("title - ", article.title);
-	    //console.log("abstract - ", article.abstract);
-	    //console.log("url - ", article.url);
 	    var queryURL = "/api/saved";
 
 	    return _axios2.default.get(queryURL).then(function (response) {
 	      console.log(response.data);
 
-	      return response;
+	      return response.data;
+	    });
+	  },
+
+	  deleteArticle: function deleteArticle(article) {
+	    var queryURL = "/api/saved?_id=" + article;
+
+	    return _axios2.default.delete(queryURL).then(function (response) {
+	      console.log(response.data);
+
+	      return response.data;
 	    });
 	  }
 
@@ -29392,8 +29424,9 @@
 	    var _this = _possibleConstructorReturn(this, (Saved.__proto__ || Object.getPrototypeOf(Saved)).call(this, props));
 
 	    _this.state = {
-	      id: ""
+	      _id: ""
 	    };
+	    _this.handleSubmit = _this.handleSubmit.bind(_this);
 	    return _this;
 	  }
 
@@ -29403,10 +29436,10 @@
 	      event.preventDefault();
 	      console.log("CLICK");
 	      //console.log(event.target.title.value, event.target.this.url.value)
-	      this.state.title = event.target.id.value;
-	      //console.log(this.state);
-	      this.props.setSaveData(this.state);
-	      this.setState({ id: "" });
+	      this.state._id = event.target._id.value;
+	      console.log(event.target._id.value);
+	      this.props.setDelete(this.state._id);
+	      this.setState({ _id: "" });
 	    }
 	  }, {
 	    key: "render",
@@ -29427,6 +29460,7 @@
 	        _react2.default.createElement(
 	          "div",
 	          { className: "panel-body text-center" },
+	          console.log("test = ", this.props.results),
 	          _react2.default.createElement(
 	            "h1",
 	            null,
@@ -29444,9 +29478,9 @@
 	                _react2.default.createElement(
 	                  "form",
 	                  { onSubmit: this.handleSubmit },
-	                  _react2.default.createElement("input", { type: "hidden", id: "title",
-	                    defaultValue: data.id, ref: function ref(id) {
-	                      return _this2.id = id;
+	                  _react2.default.createElement("input", { type: "hidden", id: "_id",
+	                    defaultValue: data._id, ref: function ref(_id) {
+	                      return _this2._id = _id;
 	                    } }),
 	                  _react2.default.createElement(
 	                    "h2",
@@ -29466,10 +29500,15 @@
 	                  _react2.default.createElement(
 	                    "p",
 	                    null,
+	                    data._id
+	                  ),
+	                  _react2.default.createElement(
+	                    "p",
+	                    null,
 	                    _react2.default.createElement(
 	                      "button",
-	                      { type: "submit", className: "btn btn-default", id: "runSearch" },
-	                      "Save Article"
+	                      { type: "submit", className: "btn btn-default", id: "delete" },
+	                      "Delete Article"
 	                    )
 	                  )
 	                )
