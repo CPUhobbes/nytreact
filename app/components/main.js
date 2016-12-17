@@ -18,31 +18,34 @@ class Main extends React.Component {
     super(props);
 
     this.state = {
+
+      //Default search states
       searchTerm: "",
       startYear:"",
       endYear:"",
       numArticles:"5",
       results: [{title:"", abstract:"", url:""}],
 
+      //Default save article states
       title: "",
       abstract:"",
       url:"",
 
-      savedArticles:[{_id:"test", title:"test", abstract:"test", url:"test"}],
+      //Default saved article states
+      savedArticles:[{_id:"", title:"", abstract:"", url:""}],
+      
+      //Default delete mongodb id state
       deleteID:""
     };
 
-    this.save = {
-      
-    };
-
+    //Bind this to functions
     this.setAllTerm = this.setAllTerm.bind(this);
     this.setSaveData = this.setSaveData.bind(this);
     this.setDelete = this.setDelete.bind(this);
 
-    //this.state.savedArticles = [{title:"testing", abstract:"test", url:"www"}];
   }
 
+  //Check for updated states
   componentDidUpdate(prevProps, prevState) {
 
     //Check for updated search form
@@ -73,7 +76,6 @@ class Main extends React.Component {
 
           })
           this.setState({ results: arr });
-            //console.log(this.state.results);
         }
       });
     }
@@ -89,17 +91,18 @@ class Main extends React.Component {
 
     }
 
+    //Check if delete article state has changed
     if(prevState.deleteID !== this.state.deleteID){
     helpers.deleteArticle(this.state.deleteID).then((data) => {
-        console.log(data, "hit");
+        console.log(data, "deleted");
         this.setState({
         savedArticles:data
       });
-      //console.log(this.state.savedArticles);
       });
     }
   }
 
+  //Change save article states
   setSaveData(data){
     this.setState({
       title: data.title,
@@ -108,6 +111,7 @@ class Main extends React.Component {
     });
   }
 
+  //Change search states
   setAllTerm(data) {
     this.setState({
       searchTerm: data.searchTerm,
@@ -117,13 +121,14 @@ class Main extends React.Component {
     });
   }
 
+  //Change deleteID state
   setDelete(data){
-    console.log(data, "asdasda");
     this.setState({
       deleteID:data
     });
   }
 
+  //On mount get all saved articles
   componentWillMount(){
     console.log("Willmounted");
     helpers.getArticles().then((data) => {
@@ -134,7 +139,7 @@ class Main extends React.Component {
     });
     }
 
-	// Here we crate the render function for what will be displayed on page.
+	// Create the render function for what will be displayed on page.
 	render(){
 
 		return(

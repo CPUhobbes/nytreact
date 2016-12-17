@@ -1,9 +1,10 @@
+"use strict";
 
 //Dependencies
 const express = require('express'),
     Articles = require('./models/Articles.js'),
     Routes = require ('./config/routes.js'),
-    BodyParser = require('body-parser');
+    BodyParser = require('body-parser'),
     Mongoose = require("mongoose"),
     Promise = require("bluebird"),
     Path = require('path'),

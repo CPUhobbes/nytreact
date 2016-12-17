@@ -1,6 +1,6 @@
 'use strict';
 
-//this is the function that is called in the index router that will load the page
+//Index router that will load the main page
 let controllers = {
     
     loadIndex: (req, res) => {

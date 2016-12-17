@@ -1,3 +1,5 @@
+"use strict";
+
 import React from "react";
 
 class Saved extends React.Component {
@@ -10,6 +12,7 @@ class Saved extends React.Component {
 	    this.handleSubmit = this.handleSubmit.bind(this);
 	}
 
+  	//On submit change id state (to be deleted)
 	handleSubmit(event) {
     event.preventDefault();
     console.log("CLICK");
@@ -25,11 +28,10 @@ class Saved extends React.Component {
     return (
       <div className="panel panel-default">
         <div className="panel-heading">
-          <h3 className="panel-title text-center">Results</h3>
+          <h2 className="panel-title text-center">Saved Articles</h2>
         </div>
         <div className="panel-body text-center">
         {console.log("test = ", this.props.results)}
-          <h1>Saved Articles!!</h1>
           <div>
             {this.props.results.length > 0 && this.props.results[0].title!="" &&
                 this.props.results.map(function(data, i) {
@@ -40,7 +42,6 @@ class Saved extends React.Component {
                             <h2>{data.title}</h2>
                             <p>{data.abstract}</p>
                             <p>{data.url}</p>
-                            <p>{data._id}</p>
                             <p><button type="submit" className="btn btn-default" id="delete">Delete Article</button></p>
                             </form>
                   </div>
